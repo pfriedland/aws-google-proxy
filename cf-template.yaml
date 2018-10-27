@@ -20,6 +20,7 @@ Metadata:
           - Memory
           - Image
           - DesiredEcsServiceCount
+          - MinEcsServiceCount
           - MaxEcsServiceCount
 
     ParameterLabels:
@@ -49,6 +50,13 @@ Parameters:
     Description: Docker image URL
 
   DesiredEcsServiceCount:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    MaxValue: 6
+    Description: Desired number of running containers
+
+  MinEcsServiceCount:
     Type: Number
     Default: 1
     MinValue: 1
@@ -281,6 +289,24 @@ Resources:
         - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
 
 
+  AutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [application-autoscaling.amazonaws.com]
+          Action: ["sts:AssumeRole"]
+      Path: /
+      Policies:
+      - PolicyName: service-autoscaling
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: ["application-autoscaling:*", "cloudwatch:DescribeAlarms", "cloudwatch:PutMetricAlarm",
+              "ecs:DescribeServices", "ecs:UpdateService"]
+            Resource: "*"
 
 
 
@@ -354,9 +380,31 @@ Resources:
             - !Ref Subnet2
             - !Ref Subnet3
 
-
       TaskDefinition: !Ref EcsTaskDefinition
 
+
+  AutoScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxEcsServiceCount
+      MinCapacity: !Ref MinEcsServiceCount
+      ResourceId: !Join ["/", [service, !Ref "Cluster", !GetAtt [EcsService, Name]]]
+      RoleARN: !GetAtt [ AutoScalingRole, Arn ]
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  ScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: ProxyScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref AutoScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        ScaleInCooldown: 120
+        ScaleOutCooldown: 120
+        TargetValue: !Ref Cpu
 
 Outputs:
   LoadBalancerUrl:
