@@ -17,7 +17,7 @@ Develop a scaleable search proxy server for google.com utilizing IaaS and standa
 - Manual code build and deploy - no build pipeline
 
 ## Infrastructure Solution
-![alt text](https://cloudcraft.co/view/df6c6199-7ede-4c97-8ce4-471021a70c90?key=VmIdToJSv4qiiUOsxm1eJQ)
+![alt text](https://github.com/pfriedland/aws-google-proxy/google-proxy-blueprint.png)
 
 The chosen solution for a scalable proxy service is:
 - AWS VPC including public subnets across three AWS Availability Zones within a single Region
