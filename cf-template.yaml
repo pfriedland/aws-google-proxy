@@ -1,0 +1,352 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS CloudFormation VPC template'
+Parameters:
+
+  Name:
+    Type: String
+    Default: google-proxy
+
+  Cpu:
+    Type: Number
+    Default: 512
+
+  Memory:
+    Type: Number
+    Default: 1024
+
+  Image:
+    Type: String
+    Default: docker.io/wattage/google-proxy
+
+  DesiredEcsServiceCount:
+    Type: Number
+    Default: 1
+
+  VpcCidr:
+    Type: String
+    Default: 10.75.0.0/22
+
+
+  Subnet1Cidr:
+    Type: String
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 10.75.0.0/24
+  Subnet1AZ:
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+    Default: us-east-1a
+
+  Subnet2Cidr:
+    Type: String
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 10.75.1.0/24
+  Subnet2AZ:
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+    Default: us-east-1b
+
+  Subnet3Cidr:
+    Type: String
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    Default: 10.75.2.0/24
+
+  Subnet3AZ:
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+    Default: us-east-1c
+
+
+Resources:
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock:
+        Ref: VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+      Tags:
+      - Key: google-proxy:name
+        Value: !Ref Name
+
+  Subnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+
+      #AvailabilityZone: String
+      CidrBlock: 
+        Ref: Subnet1Cidr
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Ref: Subnet1AZ 
+      Tags:
+      - Key: google-proxy:name
+        Value: !Ref Name
+
+  Subnet2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      CidrBlock: 
+        Ref: Subnet2Cidr
+
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC     
+      AvailabilityZone:
+        Ref: Subnet2AZ
+      Tags:
+      - Key: google-proxy:name
+        Value: !Ref Name             
+
+  Subnet3:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+
+      CidrBlock: 
+        Ref: Subnet3Cidr
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC    
+      AvailabilityZone:
+        Ref: Subnet3AZ
+      Tags:
+      - Key: google-proxy:name
+        Value: !Ref Name
+
+  Subnet1Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: Subnet1
+      RouteTableId:
+        Ref: RouteTable
+
+  Subnet2Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: Subnet2
+      RouteTableId:
+        Ref: RouteTable
+
+  Subnet3Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: Subnet3
+      RouteTableId:
+        Ref: RouteTable
+
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: google-proxy:name
+        Value: !Ref Name
+
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+        VpcId:
+            Ref: VPC
+        InternetGatewayId:
+            Ref: InternetGateway   
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: 
+        Ref: VPC
+      Tags:
+      - Key: google-proxy:name
+        Value: !Ref Name
+
+
+  RouteIGW:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: 
+        Ref: InternetGateway
+      RouteTableId: 
+        Ref: RouteTable
+
+
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref SecurityGroup
+      Type: application
+      Subnets: 
+      - !Ref Subnet1
+      - !Ref Subnet2
+      - !Ref Subnet3
+      Tags: 
+        - 
+          Key: "google-proxy:name"
+          Value: !Ref Name
+          
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+
+    Properties:
+      Matcher:
+        HttpCode: 200-399
+      VpcId: 
+        Ref: VPC
+      Protocol: HTTP
+      Port: 8080
+      TargetGroupAttributes:
+      - Key: deregistration_delay.timeout_seconds
+        Value: '20'   
+      TargetType: ip   
+      Tags: 
+        - 
+          Key: "google-proxy:name"
+          Value: !Ref Name
+
+
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: TargetGroup
+      Protocol:  HTTP
+      Port: 8080
+      LoadBalancerArn:
+        Ref: LoadBalancer
+
+
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: EC2 Application LoadBalancer
+      VpcId:
+        Ref: VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '8080'
+        ToPort: '8080'
+        CidrIp: 0.0.0.0/0 
+
+
+  Cluster:
+    Type: AWS::ECS::Cluster
+
+
+
+  ECSServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2008-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+
+
+
+
+
+
+  # create a log group named for the EcsTaskDefinition in this template
+  EcsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: 
+        !Join
+          - ""
+          - - "/aws/ecs/"
+            - !Ref Name
+      RetentionInDays: 7
+
+  EcsTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+
+      ContainerDefinitions:
+        - 
+          Cpu: !Ref Cpu
+          Essential: True
+          Image: !Ref Image
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-stream-prefix: !Ref Name
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref EcsLogGroup
+
+          MemoryReservation: !Ref Memory           
+          Name: !Ref Name
+          PortMappings:
+            -
+              ContainerPort: 8080
+              HostPort: 8080
+              Protocol: tcp
+      Cpu: !Ref Cpu
+      ExecutionRoleArn: !Ref ECSServiceRole
+      Family: !Ref Name
+      Memory: !Ref Memory
+      NetworkMode: awsvpc
+      RequiresCompatibilities: 
+        - FARGATE
+
+  EcsService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - Listener
+      - TargetGroup
+      - LoadBalancer
+    Properties:
+      Cluster: !Ref Cluster
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 0
+      DesiredCount: !Ref DesiredEcsServiceCount
+      LaunchType: FARGATE
+      LoadBalancers:
+      - ContainerName: !Ref Name
+        ContainerPort: 8080
+        TargetGroupArn: !Ref TargetGroup 
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - !Ref SecurityGroup
+          Subnets:
+            - !Ref Subnet1
+            - !Ref Subnet2
+            - !Ref Subnet3
+
+
+      TaskDefinition: !Ref EcsTaskDefinition
+
+
+Outputs:
+  LoadBalancerUrl:
+    Description: Load Balancer Endpoint URL
+    Value:
+      !Join
+        - ""
+        - - "http://"
+          - Fn::GetAtt:
+            - LoadBalancer
+            - DNSName
+    
