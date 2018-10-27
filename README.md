@@ -53,6 +53,18 @@ The nodejs proxy webserver is built and deployed as a Docker image using the pro
 ### CloudFormation Console - Create New Stack
 - Choose an AWS Region that supports ECS Fargate
 - https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
-- Choose to upload `cf-template.yaml`
+- Choose to upload the CloudFormation template file `cf-template.yaml`
 
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-template-parameters.png)
+
+- choose a unique stack name
+- defaults should work fine
+- if you would like to change the Fargate cluster node memory and/or cpu capacity, please see https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size
+- The parameter EcsServiceCpuTargetValue controls the CPU threshold after which scale-out occurs
+- Don't forget to 'check' the final confirmation indicating that IAM Roles may be created and/or modified
+
+![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-template-capabilities.png)
+
+After the CloudFormation stack completes, go to the Outputs Tab to see the URL for the proxy server:
+
+![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-stack-outputs.png)
