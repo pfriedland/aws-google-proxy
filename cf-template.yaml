@@ -1,21 +1,21 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'AWS CloudFormation VPC template'
+Description: 'AWS CloudFormation Google Proxy template'
 
-Metadata: 
-  AWS::CloudFormation::Interface: 
-    ParameterGroups: 
-      - 
-        Label: 
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
           default: "Availability Zones"
-        Parameters: 
+        Parameters:
           - Subnet1AZ
           - Subnet2AZ
           - Subnet3AZ
-      - 
-        Label: 
+      -
+        Label:
           default: "ECS Base Configuration"
-        Parameters: 
+        Parameters:
           - Cpu
           - Memory
           - Image
@@ -31,8 +31,8 @@ Metadata:
 
 
     ParameterLabels:
-      Subnet1AZ: 
-        Default: Availability Zone One 
+      Subnet1AZ:
+        Default: Availability Zone One
 
 Parameters:
 
@@ -121,9 +121,9 @@ Resources:
       VpcId:
         Ref: VPC
       AvailabilityZone:
-          !Select 
+          !Select
             - 0
-            - !Ref Subnet1AZ          
+            - !Ref Subnet1AZ
       Tags:
       - Key: google-proxy:name
         Value: !Ref Name
@@ -135,14 +135,14 @@ Resources:
 
       MapPublicIpOnLaunch: true
       VpcId:
-        Ref: VPC     
+        Ref: VPC
       AvailabilityZone:
-          !Select 
+          !Select
             - 1
             - !Ref Subnet1AZ
       Tags:
       - Key: google-proxy:name
-        Value: !Ref Name             
+        Value: !Ref Name
 
   Subnet3:
     Type: "AWS::EC2::Subnet"
@@ -151,11 +151,11 @@ Resources:
       CidrBlock: 10.75.2.0/24
       MapPublicIpOnLaunch: true
       VpcId:
-        Ref: VPC    
+        Ref: VPC
       AvailabilityZone:
-          !Select 
+          !Select
             - 2
-            - !Ref Subnet1AZ          
+            - !Ref Subnet1AZ
       Tags:
       - Key: google-proxy:name
         Value: !Ref Name
@@ -199,11 +199,11 @@ Resources:
         VpcId:
             Ref: VPC
         InternetGatewayId:
-            Ref: InternetGateway   
+            Ref: InternetGateway
   RouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: 
+      VpcId:
         Ref: VPC
       Tags:
       - Key: google-proxy:name
@@ -214,9 +214,9 @@ Resources:
     Type: "AWS::EC2::Route"
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: 
+      GatewayId:
         Ref: InternetGateway
-      RouteTableId: 
+      RouteTableId:
         Ref: RouteTable
 
 
@@ -230,15 +230,15 @@ Resources:
       SecurityGroups:
         - !Ref SecurityGroup
       Type: application
-      Subnets: 
+      Subnets:
       - !Ref Subnet1
       - !Ref Subnet2
       - !Ref Subnet3
-      Tags: 
-        - 
+      Tags:
+        -
           Key: "google-proxy:name"
           Value: !Ref Name
-          
+
 
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -246,16 +246,16 @@ Resources:
     Properties:
       Matcher:
         HttpCode: 200-399
-      VpcId: 
+      VpcId:
         Ref: VPC
       Protocol: HTTP
       Port: 8080
       TargetGroupAttributes:
       - Key: deregistration_delay.timeout_seconds
-        Value: '20'   
-      TargetType: ip   
-      Tags: 
-        - 
+        Value: '20'
+      TargetType: ip
+      Tags:
+        -
           Key: "google-proxy:name"
           Value: !Ref Name
 
@@ -285,7 +285,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: '8080'
         ToPort: '8080'
-        CidrIp: 0.0.0.0/0 
+        CidrIp: 0.0.0.0/0
 
 
   Cluster:
@@ -333,8 +333,8 @@ Resources:
   # create a log group named for the EcsTaskDefinition in this template
   EcsLogGroup:
     Type: AWS::Logs::LogGroup
-    Properties: 
-      LogGroupName: 
+    Properties:
+      LogGroupName:
         !Join
           - ""
           - - "/aws/ecs/"
@@ -346,7 +346,7 @@ Resources:
     Properties:
 
       ContainerDefinitions:
-        - 
+        -
           Cpu: !Ref Cpu
           Essential: True
           Image: !Ref Image
@@ -357,7 +357,7 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-group: !Ref EcsLogGroup
 
-          MemoryReservation: !Ref Memory           
+          MemoryReservation: !Ref Memory
           Name: !Ref Name
           PortMappings:
             -
@@ -369,7 +369,7 @@ Resources:
       Family: !Ref Name
       Memory: !Ref Memory
       NetworkMode: awsvpc
-      RequiresCompatibilities: 
+      RequiresCompatibilities:
         - FARGATE
 
   EcsService:
@@ -388,7 +388,7 @@ Resources:
       LoadBalancers:
       - ContainerName: !Ref Name
         ContainerPort: 8080
-        TargetGroupArn: !Ref TargetGroup 
+        TargetGroupArn: !Ref TargetGroup
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -436,4 +436,3 @@ Outputs:
             - LoadBalancer
             - DNSName
           - ":8080/hello%20world"
-    
