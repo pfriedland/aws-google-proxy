@@ -65,6 +65,8 @@ The nodejs proxy webserver is built and deployed as a Docker image using the pro
 
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-template-capabilities.png)
 
-After the CloudFormation stack completes, go to the Outputs Tab to see the URL for the proxy server:
+
+After the CloudFormation stack completes, go to the `Outputs` tab to see the URL for the proxy server:
+
 
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-stack-outputs.png)
