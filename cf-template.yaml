@@ -14,14 +14,21 @@ Metadata:
           - Subnet3AZ
       - 
         Label: 
-          default: "ECS Configuration"
+          default: "ECS Base Configuration"
         Parameters: 
           - Cpu
           - Memory
           - Image
+
+      -
+        Label:
+          default: "ECS Auto-Scaling Configuration"
+        Parameters:
           - DesiredEcsServiceCount
           - MinEcsServiceCount
           - MaxEcsServiceCount
+          - EcsServiceCpuTargetValue
+
 
     ParameterLabels:
       Subnet1AZ: 
@@ -36,13 +43,17 @@ Parameters:
 
   Cpu:
     Type: Number
-    Default: 512
-    Description: Valid ECS Fargate CPU capacity
+    Default: 256
+    MinValue: 256
+    MaxValue: 4096
+    Description: Valid ECS Fargate CPU capacity units of varying increments
 
   Memory:
     Type: Number
-    Default: 1024
-    Description: Valid ECS Fargate Memory capacity
+    Default: 512
+    MinValue: 512
+    MaxValue: 30720
+    Description: Valid ECS Fargate Memory capacity increments of 1GB
 
   Image:
     Type: String
@@ -71,10 +82,18 @@ Parameters:
     Description: Maximum number of running containers
 
 
+  EcsServiceCpuTargetValue:
+    Type: Number
+    Default: 32
+    MinValue: 32
+    MaxValue: 4096
+    Description: The number of CPU units at which a auto-scale event occurs
+
+
   Subnet1AZ:
     Type: List<AWS::EC2::AvailabilityZone::Name>
     Default: us-east-1a
-    Description: Select Three Unique Availability Zone 
+    Description: Select Three Unique Availability Zones
 
 
 
@@ -404,7 +423,7 @@ Resources:
           PredefinedMetricType: ECSServiceAverageCPUUtilization
         ScaleInCooldown: 120
         ScaleOutCooldown: 120
-        TargetValue: !Ref Cpu
+        TargetValue: !Ref EcsServiceCpuTargetValue
 
 Outputs:
   LoadBalancerUrl:
@@ -416,4 +435,5 @@ Outputs:
           - Fn::GetAtt:
             - LoadBalancer
             - DNSName
+          - ":8080/hello%20world"
     
