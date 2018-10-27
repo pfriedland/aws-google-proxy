@@ -49,3 +49,10 @@ The nodejs proxy webserver is built and deployed as a Docker image using the pro
 
 
 ## Installation
+
+### CloudFormation Console - Create New Stack
+- Choose an AWS Region that supports ECS Fargate
+- https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+- Choose to upload `cf-template.yaml`
+
+![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-template-parameters.png)
