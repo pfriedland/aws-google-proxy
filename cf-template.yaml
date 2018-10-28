@@ -228,7 +228,7 @@ Resources:
 
       Scheme: internet-facing
       SecurityGroups:
-        - !Ref SecurityGroup
+        - !Ref ALBSecurityGroup
       Type: application
       Subnets:
       - !Ref Subnet1
@@ -275,7 +275,7 @@ Resources:
 
 
 
-  SecurityGroup:
+  ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: EC2 Application LoadBalancer
@@ -287,6 +287,17 @@ Resources:
         ToPort: '8080'
         CidrIp: 0.0.0.0/0
 
+  EcsServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS Service
+      VpcId:
+        Ref: VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '0'
+        ToPort: '65535'      
+        SourceSecurityGroupId: !Ref ALBSecurityGroup
 
   Cluster:
     Type: AWS::ECS::Cluster
@@ -393,7 +404,7 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
           SecurityGroups:
-            - !Ref SecurityGroup
+            - !Ref EcsServiceSecurityGroup
           Subnets:
             - !Ref Subnet1
             - !Ref Subnet2
