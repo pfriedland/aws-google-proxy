@@ -9,7 +9,7 @@ const HOST = '0.0.0.0';
 
 // App
 const app = express();
-//app.set('view engine', 'ejs');
+
 app.get('*', (req, response) => {
 		console.log("request path=" + JSON.stringify(req.path))
     console.log("request parameters=" + JSON.stringify(req.params))
