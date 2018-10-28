@@ -158,3 +158,6 @@ After the CloudFormation stack completes, go to the `Outputs` tab to see the URL
 - If desired, a private ECR repository can be manually created in the same AWS account as the CloudFormation stack and the image pushed
 - The Docker image URL used by ECS is configurable as a CloudFormation template parameter
 - The Docker container can be run locally using the command `docker run -it -p 8080:8080 wattage/google-proxy` where the host port and image name may need to be adjusted
+
+### Performance Testing
+Locust, a Python HTTP testing harness, was used to simulate 1000 concurrent users of the API and to test the auto scaling of the ECS service.  This can be explained further upon request.
