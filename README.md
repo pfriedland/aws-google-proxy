@@ -15,6 +15,9 @@ Develop a scaleable search proxy server for google.com utilizing IaaS and standa
 - Highly available
 - HTTP-only
 - Manual code build and deploy - no build pipeline
+- Future: Use AWS Code Build and Pipeline via **mu** (https://github.com/stelligent/mu)
+
+`Note:` I did not implement a CI/CD pipeline due to time and AWS costs for myself.  **mu** completely automates the process of managing multiple deployment environments and pipelines without any additional overhead or dependencies. 
 
 ## Infrastructure Solution
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/google-proxy-blueprint.png)
@@ -26,7 +29,7 @@ The chosen solution for a scalable proxy service is:
 - EC2/ECS Service Auto-Scaling - ECS service is configured with a target-tracking auto scaling policy
 - AWS infrastructure is deployed via a configurable CloudFormation template `cf-template.yaml` described in the Installation section
 
-`Note:` ECS Fargate is available in about 50% of the AWS global regions - this solution must be deployed in one of enabled regions
+`Note:` ECS Fargate is available in about 60% of the AWS global regions - this solution must be deployed in one of enabled regions
 ### Infrastructure Tradeoffs
 Keeping with the notion of serverless, or microservices, it was determined that AWS Lambda functions and API Gateway would not meet the Functional Requirement of listening on port 8080.   The next, most elegant solution decision was to use Docker and EC2 Application Load Balancing and ECS/Fargate technologies.
 
@@ -148,7 +151,7 @@ After the CloudFormation stack completes, go to the `Outputs` tab to see the URL
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-stack-outputs.png)
 
 ### Optional
-- The Docker image can be built locally using the `build.sh` script
+- The Docker image can be built locally using the `build.sh` script on a workstation with Docker installed
 - If desired, a private ECR repository can be manually created in the same AWS account as the CloudFormation stack and the image pushed
 - The Docker image URL used by ECS is configurable as a CloudFormation template parameter
 - The Docker container can be run locally using the command `docker run -it -p 8080:8080 wattage/google-proxy` where the host port and image name may need to be adjusted
