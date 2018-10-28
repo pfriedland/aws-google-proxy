@@ -36,19 +36,47 @@ Keeping with the notion of serverless, or microservices, it was determined that 
 The implementation of the proxy server `server.js` is via a `nodejs` webserver solution utilizing the `express` and `request` node packages.
 
 Nodejs and Express are a very simple, scalable software solution:
-- simple web server listening on port 8080
--
+- simple express web server listening on port 8080
 - If the Request path is /url, then the browser is redirected to the search result
 - Otherwise, query parameters are parsed according to Functional Requirements and passed to https://www.google.com/search
+- Content from Google is then returned
+
+### Path and Query Logic
+Before a search request is made to Google, some hacking of the request query parameters is made.  This logic was determined by some painstaking testing and observation of Google-generated HTML `<a>` tags:
+```
+else {
+  var path = '/search?q='+req.path.substr(1);
+  var host = 'https://www.google.com';
+
+  if ((req.path === '/search' || req.path === '/advanced_search')
+    && req.query.q != null) {
+      // this is an embedded search
+      path = '/search?q=' + req.query.q
+      // check to see if this is a pagination
+      if (req.query.start != null) {
+        path = path + '&start=' + req.query.start
+      }
+      // is this is time-based search?
+      else if (req.query.tbs != null) {
+        path = path + '&tbs=' + req.query.tbs
+      }
+      // is this is a images, video, news, shopping, books query?
+      if (req.query.tbm != null ){
+        path = path + '&tbm=' + req.query.tbm
+      }
+  }
+```
+`Note:` Google Maps and other related sites are not covered by this proxy server
 
 ### Code Deployment
 The nodejs proxy webserver is built and deployed as a Docker image using the project `Dockerfile` and associated build artifacts `package.json` and `server.js`. By default, the Docker image is accessible via the public repository docker.io/wattage/google-proxy.  If AWS ECR private container registry is desired, the image can be pushed to an ECR repository within the same AWS account as the running CloudFormation stack.  By default, ECS Fargate nodes are configured with IAM permissions to access ECR images.
 
 
 ## Prerequisites
-
+- AWS account with IAM user having sufficient privileges to create resources via CloudFormation
 
 ## Installation
+This is a one-step install on AWS.  The Docker image is kept at docker.io/wattage/google-proxy and is configurable via the CloudFormation input parameters.
 
 ### CloudFormation Console - Create New Stack
 - Choose an AWS Region that supports ECS Fargate
@@ -70,3 +98,5 @@ After the CloudFormation stack completes, go to the `Outputs` tab to see the URL
 
 
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-stack-outputs.png)
+
+### Optional
