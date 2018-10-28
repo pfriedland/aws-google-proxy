@@ -33,6 +33,8 @@ The chosen solution for a scalable proxy service is:
 ### Infrastructure Tradeoffs
 Keeping with the notion of serverless, or microservices, it was determined that AWS Lambda functions and API Gateway would not meet the Functional Requirement of listening on port 8080.   The next, most elegant solution decision was to use Docker and EC2 Application Load Balancing and ECS/Fargate technologies.
 
+A simple VPC with public subnets was implemented. The Fargate instances require access to the Internet and that is accomplished via an Internet Gateway.  Normally, an AWS NAT gateway and private subnets would be provisioned. The solution chosen was to conserve implementation cost.  The Fargate nodes are protected by a VPC security group with TCP ingress permitted only from the ALB.
+
 
 ## Code Solution
 
