@@ -35,7 +35,7 @@ Keeping with the notion of serverless, or microservices, it was determined that 
 
 The implementation of the proxy server `server.js` is via a `nodejs` webserver solution utilizing the `express` and `request` node packages.
 
-Nodejs and Express are a very simple, scalable software solution:
+Nodejs and Express are a very simple, concurrent software solution for serving web pages:
 - simple express web server listening on port 8080
 - If the Request path is /url, then the browser is redirected to the search result
 - Otherwise, query parameters are parsed according to Functional Requirements and passed to https://www.google.com/search
@@ -151,4 +151,4 @@ After the CloudFormation stack completes, go to the `Outputs` tab to see the URL
 - The Docker image can be built locally using the `build.sh` script
 - If desired, a private ECR repository can be manually created in the same AWS account as the CloudFormation stack and the image pushed
 - The Docker image URL used by ECS is configurable as a CloudFormation template parameter
-- The Docker container can be run locally using the command `docker run -it -p 8080:8080 wattage/google-proxy` where the host port and image name may need to be adjusted 
+- The Docker container can be run locally using the command `docker run -it -p 8080:8080 wattage/google-proxy` where the host port and image name may need to be adjusted
