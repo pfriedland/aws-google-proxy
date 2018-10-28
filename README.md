@@ -49,7 +49,7 @@ In the callback for HTTP GET requests made to the server:
 
 - Otherwise, before a search request is made to Google, some hacking of the request query parameters is made.  This logic was determined by some painstaking testing and observation of Google-generated HTML `<a>` tags
 
-``` python
+``` javascript
 'use strict';
 
 const express = require('express');
