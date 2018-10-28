@@ -17,7 +17,7 @@ Develop a scaleable search proxy server for google.com utilizing IaaS and standa
 - Manual code build and deploy - no build pipeline
 - Future: Use AWS Code Build and Pipeline via **mu** (https://github.com/stelligent/mu)
 
-`Note:` I did not implement a CI/CD pipeline due to time and AWS costs for myself.  **mu** completely automates the process of managing multiple deployment environments and pipelines without any additional overhead or dependencies. 
+`Note:` I did not implement a CI/CD pipeline due to time and AWS costs for myself.  **mu** completely automates the process of managing multiple deployment environments and pipelines without any additional overhead or dependencies.
 
 ## Infrastructure Solution
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/google-proxy-blueprint.png)
@@ -125,7 +125,7 @@ The nodejs proxy webserver is built and deployed as a Docker image using the pro
 ## Prerequisites
 - AWS account with IAM user having sufficient privileges to create resources via CloudFormation
 
-## Installation
+## Installation and Configuration
 This is a one-step install on AWS.  The Docker image is kept at docker.io/wattage/google-proxy and is configurable via the CloudFormation input parameters.
 
 ### CloudFormation Console - Create New Stack
@@ -138,8 +138,11 @@ This is a one-step install on AWS.  The Docker image is kept at docker.io/wattag
 - choose a unique stack name
 - You must select **three** availability zones
 - defaults should work fine
-- if you would like to change the Fargate cluster node memory and/or cpu capacity, please see https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size
-- The parameter EcsServiceCpuTargetValue controls the CPU threshold after which scale-out occurs
+- if you would like to change the Fargate cluster node memory and/or cpu capacity for scaling up, please see https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size
+- If you would like to scale out, change the parameters DesiredEcsServiceCount, MinEcsServiceCount, and MaxEcsServiceCount
+- The parameter EcsServiceCpuTargetValue controls the CPU threshold after which scale out occurs
+- ECS container scheduling will evenly distribute containers across multiple availability zones
+- ECS container reservation is configured such that one container will run on each Fargate node - this may be suboptimal although was simplest in term of implementation of the CloudFormation stack template
 - Don't forget to 'check' the final confirmation indicating that IAM Roles may be created and/or modified
 
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-template-capabilities.png)
