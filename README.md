@@ -89,14 +89,14 @@ app.get('*', (req, response) => {
 			  	if (req.query.start != null) {
 			  		path = path + '&start=' + req.query.start
 			  	}
-					// is this is time-based search?
-					else if (req.query.tbs != null) {
-						path = path + '&tbs=' + req.query.tbs
-					}
-					// is this is a images, video, news, shopping, books query?
-					if (req.query.tbm != null ){
-						path = path + '&tbm=' + req.query.tbm
-					}
+				// is this is time-based search?
+				else if (req.query.tbs != null) {
+					path = path + '&tbs=' + req.query.tbs
+				}
+				// is this is a images, video, news, shopping, books query?
+				if (req.query.tbm != null ){
+					path = path + '&tbm=' + req.query.tbm
+				}
 			}
 		 	console.log('google search path=' + path)
 			// make the search request to www.google.com
@@ -133,7 +133,7 @@ This is a one-step install on AWS.  The Docker image is kept at docker.io/wattag
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-template-parameters.png)
 
 - choose a unique stack name
-- You must select **three** availability zones 
+- You must select **three** availability zones
 - defaults should work fine
 - if you would like to change the Fargate cluster node memory and/or cpu capacity, please see https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size
 - The parameter EcsServiceCpuTargetValue controls the CPU threshold after which scale-out occurs
@@ -148,3 +148,7 @@ After the CloudFormation stack completes, go to the `Outputs` tab to see the URL
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-stack-outputs.png)
 
 ### Optional
+- The Docker image can be built locally using the `build.sh` script
+- If desired, a private ECR repository can be manually created in the same AWS account as the CloudFormation stack and the image pushed
+- The Docker image URL used by ECS is configurable as a CloudFormation template parameter
+- The Docker container can be run locally using the command `docker run -it -p 8080:8080 wattage/google-proxy` where the host port and image name may need to be adjusted 
