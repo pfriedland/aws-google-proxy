@@ -133,6 +133,7 @@ This is a one-step install on AWS.  The Docker image is kept at docker.io/wattag
 ![alt text](https://github.com/pfriedland/aws-google-proxy/blob/master/cloudformation-template-parameters.png)
 
 - choose a unique stack name
+- You must select **three** availability zones 
 - defaults should work fine
 - if you would like to change the Fargate cluster node memory and/or cpu capacity, please see https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size
 - The parameter EcsServiceCpuTargetValue controls the CPU threshold after which scale-out occurs
