@@ -14,6 +14,7 @@ Develop a scaleable search proxy server for google.com utilizing IaaS and standa
 - Auto-scaling
 - Highly available
 - HTTP-only
+- No custom DNS domain - proxy is accessible via AWS assigned public DNS name
 - Manual code build and deploy - no build pipeline
 - Future: Use AWS Code Build and Pipeline via **mu** (https://github.com/stelligent/mu)
 
