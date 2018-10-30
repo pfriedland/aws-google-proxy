@@ -1,15 +1,14 @@
 {
-  "name": "docker_web_app",
+  "name": "google-proxy-web-app",
   "version": "1.0.0",
-  "description": "Node.js on Docker",
+  "description": "Google search proxy",
   "author": "Peter Friedland <pfriedland@gmail.com>",
-  "main": "server1.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.16.1",
-    "ejs": "",
     "request": ""
   }
 }
